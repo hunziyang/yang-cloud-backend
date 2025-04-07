@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.portal.user.mapper.DeptMapper">
+
+    <select id="getChildOpenStatusCount" resultType="long">
+        SELECT COUNT(ID) FROM DEPT WHERE FIND_IN_SET(#{id}, ANCESTRAL) AND IS_DELETED = FALSE AND STATUS = FALSE
+    </select>
+
+    <select id="findChildDept" resultType="com.yang.portal.user.entity.Dept">
+        SELECT ID,ANCESTRAL FROM DEPT WHERE FIND_IN_SET(#{id}, ANCESTRAL) AND IS_DELETED = FALSE
+    </select>
+
+    <select id="getChildCount" resultType="long">
+        SELECT COUNT(ID) FROM DEPT WHERE FIND_IN_SET(#{id}, ANCESTRAL) AND IS_DELETED = FALSE
+    </select>
+
+    <select id="getDeptAndChild" resultType="com.yang.portal.user.entity.Dept">
+        SELECT <include refid="column"/>  FROM `DEPT` WHERE `STATUS` = FALSE AND IS_DELETED =FALSE AND (ID = #{ID} OR FIND_IN_SET(#{ID},ANCESTRAL))
+    </select>
+
+    <select id="select" resultType="com.yang.portal.user.entity.Dept">
+        SELECT <include refid="column"/> FROM DEPT
+        <include refid="selectCondition"/>
+        <choose>
+            <when test="sortList != null">
+                <foreach collection="sortList" item="sort" open="ORDER BY " separator=", " close=" ">
+                    ${sort.field} ${sort.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY ID DESC
+            </otherwise>
+        </choose>
+        LIMIT ${offset},${size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1) FROM DEPT
+        <include refid="selectCondition"/>
+    </select>
+
+    <sql id="column">
+        ID,PARENT_ID,ANCESTRAL,NAME,STATUS,IS_DELETED,UNIQUE_KEY,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME
+    </sql>
+
+    <sql id="selectCondition">
+        <where>
+            IS_DELETED = FALSE
+            <if test="query.name != null and query.name != ''">
+                AND NAME LIKE CONCAT('%',#{query.name}, '%')
+            </if>
+            <if test="query.status != null">
+                AND STATUS = #{query.status}
+            </if>
+            <if test="query.parentId != null">
+                AND PARENT_ID = #{query.parentId}
+            </if>
+        </where>
+    </sql>
+
+</mapper>
