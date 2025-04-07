@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.portal.user.mapper.UserMapper">
+
+    <select id="getUsersByDept" resultType="long">
+        SELECT count(ID) FROM USER WHERE IS_DELETED = FALSE AND DEPT_ID = #{deptId}
+    </select>
+
+    <select id="select" resultType="com.yang.portal.user.service.impl.userService.UserDto">
+        SELECT
+            <include refid="column"/>
+        FROM
+            `USER` B
+            LEFT JOIN DEPT C ON B.DEPT_ID = C.ID AND C.IS_DELETED = FALSE
+            LEFT JOIN POST D ON B.POST_ID = D.ID AND D.IS_DELETED = FALSE
+        <where>
+            B.IS_DELETED = false
+            <include refid="selectCondition"/>
+        </where>
+        <choose>
+            <when test="sortList != null">
+                <foreach collection="sortList" item="sort" open="ORDER BY " separator=", " close=" ">
+                    ${sort.field} ${sort.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY `ID` DESC
+            </otherwise>
+        </choose>
+        LIMIT ${offset},${pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(ID)
+        FROM USER B
+        <where>
+            B.IS_DELETED = false
+            <include refid="selectCondition"/>
+        </where>
+    </select>
+
+    <select id="selectByTenant" resultType="com.yang.portal.user.service.impl.userService.UserDto">
+        SELECT
+            <include refid="column"/>
+        FROM
+            `USER_TENANT` A
+            INNER JOIN `USER` B ON A.USER_ID = B.ID AND B.IS_DELETED = FALSE
+            LEFT JOIN DEPT C ON B.DEPT_ID = C.ID AND C.IS_DELETED = FALSE
+            LEFT JOIN POST D ON B.POST_ID = D.ID AND D.IS_DELETED = FALSE
+        <where>
+            B.IS_DELETED = false
+            AND A.TENANT_ID = #{tenantId}
+            <include refid="selectCondition"/>
+        </where>
+        <choose>
+            <when test="sortList != null">
+                <foreach collection="sortList" item="sort" open="ORDER BY " separator=", " close=" ">
+                    ${sort.field} ${sort.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY `ID` DESC
+            </otherwise>
+        </choose>
+        LIMIT ${offset},${pageSize}
+    </select>
+
+    <select id="countByTenant" resultType="long">
+        SELECT COUNT(B.ID)
+        FROM
+            `USER_TENANT` A
+        INNER JOIN `USER` B ON A.USER_ID = B.ID AND B.IS_DELETED = FALSE
+        <where>
+            B.IS_DELETED = false
+            AND A.TENANT_ID = #{tenantId}
+            <include refid="selectCondition"/>
+        </where>
+    </select>
+    
+    <sql id="column">
+        B.ID,
+        B.USERNAME,
+        B.NICKNAME,
+        B.BIRTHDAY,
+        B.GENDER,
+        B.DEPT_ID,
+        B.POST_ID,
+        B.CREATED_BY,
+        B.CREATED_TIME,
+        B.UPDATED_BY,
+        B.UPDATED_TIME,
+        C.`NAME` AS DEPT_NAME,
+        D.`NAME` AS POST_NAME
+    </sql>
+
+    <sql id="selectCondition">
+        <if test="query.nickname != null and query.nickname != ''">
+            AND B.NICKNAME LIKE CONCAT('%', #{query.nickname}, '%')
+        </if>
+        <if test="query.username != null and query.username != ''">
+            AND B.USERNAME LIKE CONCAT('%', #{query.username}, '%')
+        </if>
+        <if test="query.deptId != null">
+            AND B.DEPT_ID = #{query.deptId}
+        </if>
+        <if test="query.postId != null">
+            AND B.DEPT_ID = #{query.postId}
+        </if>
+    </sql>
+    
+    <select id="getUserByUsername" resultType="com.yang.portal.user.service.impl.userService.UserInfoDto">
+        SELECT
+            A.ID,
+            USERNAME,
+            `PASSWORD`,
+            SALT,
+            NICKNAME,
+            DEPT_ID,
+            B.`NAME` AS DEPT_NAME,
+            POST_ID,
+            C.`NAME` AS POST_NAME
+        FROM
+            `USER` A
+            LEFT JOIN DEPT B ON A.DEPT_ID = B.ID AND B.IS_DELETED = FALSE
+            LEFT JOIN POST C ON A.POST_ID = C.ID AND C.IS_DELETED = FALSE
+        WHERE
+            A.USERNAME = #{username}
+          AND A.IS_DELETED = FALSE
+    </select>
+
+    <select id="getUserById" resultType="com.yang.portal.user.service.impl.userService.UserInfoDto">
+        SELECT
+            A.ID,
+            USERNAME,
+            `PASSWORD`,
+            SALT,
+            NICKNAME,
+            DEPT_ID,
+            B.`NAME` AS DEPT_NAME,
+            POST_ID,
+            C.`NAME` AS POST_NAME
+        FROM
+            `USER` A
+                LEFT JOIN DEPT B ON A.DEPT_ID = B.ID AND B.IS_DELETED = FALSE
+                LEFT JOIN POST C ON A.POST_ID = C.ID AND C.IS_DELETED = FALSE
+        WHERE
+            A.ID = #{userId}
+          AND A.IS_DELETED = FALSE
+    </select>
+</mapper>

@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: user-module
+  cloud:
+    nacos:
+      config:
+        server-addr: 192.168.52.130:8848
+        namespace: 9ed4e7c9-3aca-4678-a7b6-5043b681a4ab
+        username: nacos
+        password: nacos
+        file-extension: yaml
+---
+spring:
+  config:
+    activate.on-profile: dev
+  cloud:
+    nacos:
+      config:
+        group: dev
+        shared-configs:
+          - data-id: mysql-dev.yaml
+            refresh: true
+            group: dev
+          - data-id: redis-dev.yaml
+            refresh: true
+            group: dev

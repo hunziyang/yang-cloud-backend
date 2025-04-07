@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.portal.user.mapper.UserRoleMapper">
+
+    <select id="getRoleInfoByTenantIdAndUserId" resultType="com.yang.portal.user.service.impl.userService.UserLoginInfoDto$UserLoginInfoRoleDetail">
+        SELECT
+            B.ID,
+            B.NAME
+        FROM
+            USER_ROLE A
+                INNER JOIN ROLE B ON A.ROLE_ID = B.ID
+                AND A.TENANT_ID = B.TENANT_ID
+        WHERE
+            A.USER_ID = #{userId}
+          AND B.IS_DELETED = FALSE
+          AND A.TENANT_ID = #{tenantId}
+    </select>
+</mapper>

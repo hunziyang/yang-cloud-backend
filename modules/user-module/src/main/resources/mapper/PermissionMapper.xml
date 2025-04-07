@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.portal.user.mapper.PermissionMapper">
+
+    <select id="getTenantAdminPermissionByTenantId" resultType="com.yang.portal.user.service.impl.userService.UserLoginInfoDto$UserLoginInfoPermissionDetail">
+        SELECT METHOD, URL, 'ALL' AS SCOPE FROM `PERMISSION` WHERE URL IS NOT NULL AND METHOD IS NOT NULL AND TYPE IN ('MENU','BUTTON') AND TENANT_ID = #{tenantId} AND IS_DELETED = FALSE
+        UNION ALL
+        SELECT METHOD, URL, 'ALL' AS SCOPE FROM `PERMISSION` WHERE URL IS NOT NULL AND METHOD IS NOT NULL AND TYPE IN ('MENU','BUTTON') AND TENANT_ID = -96 AND IS_DELETED = FALSE
+    </select>
+
+    <select id="getUserPermissionByTenantId" resultType="com.yang.portal.user.service.impl.userService.UserLoginInfoDto$UserLoginInfoPermissionDetail">
+        SELECT
+            C.METHOD,
+            C.URL,
+            GROUP_CONCAT(D.SCOPE) AS SCOPE
+        FROM
+            USER_ROLE A
+                INNER JOIN ROLE_PERMISSION B ON A.ROLE_ID = B.ROLE_ID AND A.TENANT_ID = B.TENANT_ID
+                INNER JOIN PERMISSION C ON C.ID = B.PERMISSION_ID AND C.TENANT_ID = B.TENANT_ID
+                INNER JOIN ROLE D ON A.ROLE_ID = D.ID AND A.TENANT_ID = D.TENANT_ID
+        WHERE
+            C.IS_DELETED = FALSE
+          AND C.URL IS NOT NULL
+          AND C.METHOD IS NOT NULL
+          AND C.TYPE IN ( 'MENU', 'BUTTON' )
+          AND A.TENANT_ID = #{tenantId}
+          AND A.USER_ID = #{userId}
+        GROUP BY C.METHOD,C.URL
+    </select>
+
+    <select id="selectRouterByAdmin" resultType="com.yang.portal.user.entity.Permission">
+        SELECT ID,PARENT_ID,ROUTE,`NAME`,TYPE,METHOD FROM `PERMISSION`
+        WHERE IS_DELETED = FALSE AND TENANT_ID = #{tenantId}
+          AND TYPE IN ('CATALOG', 'MENU')
+        UNION ALL
+        SELECT ID,PARENT_ID,ROUTE,`NAME`,TYPE,METHOD FROM `PERMISSION`
+        WHERE IS_DELETED = FALSE AND TENANT_ID = -96
+          AND TYPE IN ('CATALOG', 'MENU')
+    </select>
+</mapper>

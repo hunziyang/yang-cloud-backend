@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.portal.user.mapper.TenantMapper">
+
+    <select id="select" resultType="com.yang.portal.user.entity.Tenant">
+        SELECT <include refid="column"/> FROM TENANT
+        <include refid="selectCondition"/>
+        <choose>
+            <when test="sortList != null">
+                <foreach collection="sortList" item="sort" open="ORDER BY " separator=", " close=" ">
+                    ${sort.field} ${sort.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY ID DESC
+            </otherwise>
+        </choose>
+        LIMIT ${offset},${size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(ID) FROM TENANT
+        <include refid="selectCondition"/>
+    </select>
+
+    <sql id="column">
+        ID,NAME,DESCRIPTION,STATUS,IS_DELETED,UNIQUE_KEY,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME
+    </sql>
+
+    <sql id="selectCondition">
+        <where>
+            IS_DELETED = FALSE
+            <if test="query.name != null and query.name != ''">
+                AND NAME LIKE CONCAT('%',#{query.name}, '%')
+            </if>
+            <if test="query.status != null">
+                AND STATUS = #{query.status}
+            </if>
+            <if test="query.description != null and query.description != ''">
+                AND `DESCRIPTION` LIKE CONCAT('%', #{query.description}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="getAllTenants" resultType="com.yang.portal.user.service.impl.userService.UserTenantDto">
+        SELECT ID,`NAME` FROM `TENANT` WHERE IS_DELETED = FALSE ORDER BY ID
+    </select>
+</mapper>

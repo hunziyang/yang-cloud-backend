@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.portal.user.mapper.RoleMapper">
+
+    <select id="select" resultType="com.yang.portal.user.entity.Role">
+        SELECT <include refid="column"/> FROM ROLE
+        <include refid="selectCondition"/>
+        <choose>
+            <when test="sortList != null">
+                <foreach collection="sortList" item="sort" open="ORDER BY " separator=", " close=" ">
+                    ${sort.field} ${sort.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY `ORDER` ASC
+            </otherwise>
+        </choose>
+        LIMIT #{offset},#{pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(ID) FROM ROLE
+        <include refid="selectCondition"/>
+    </select>
+
+    <sql id="column">
+        ID,NAME,TENANT_ID,IS_DELETED,UNIQUE_KEY,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME
+    </sql>
+
+    <sql id="selectCondition">
+        <where>
+            IS_DELETED = FALSE
+            AND TENANT_ID = #{tenantId}
+            <if test="query.name != null and query.name != ''">
+                AND NAME LIKE CONCAT('%',#{query.name},'%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="getRoleByTenantId" resultType="com.yang.portal.user.service.impl.userService.UserLoginInfoDto$UserLoginInfoRoleDetail">
+        SELECT ID,`NAME` FROM ROLE WHERE TENANT_ID = #{tenantId} AND IS_DELETED = FALSE
+    </select>
+</mapper>

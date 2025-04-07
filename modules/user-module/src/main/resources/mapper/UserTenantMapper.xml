@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.portal.user.mapper.UserTenantMapper">
+
+    <select id="tenantUser" resultType="com.yang.portal.user.service.impl.tenantService.TenantUserDto">
+        SELECT
+            B.ID,
+            B.USERNAME,
+            B.NICKNAME,
+            A.IS_ADMIN,
+            C.`NAME` AS DEPT_NAME,
+            D.`NAME` AS POST_NAME
+        <include refid="tenantUser"/>
+        ORDER BY B.ID
+        LIMIT #{offset},#{pageSize}
+    </select>
+
+    <select id="tenantUserCount" resultType="long">
+        SELECT COUNT(1)
+        <include refid="tenantUser"/>
+    </select>
+
+    <sql id="tenantUser">
+        FROM
+            `USER_TENANT` A
+                LEFT JOIN `USER` B
+                    ON A.USER_ID = B.ID AND B.IS_DELETED = FALSE
+                LEFT JOIN `DEPT` C
+                    ON B.DEPT_ID = C.ID AND C.IS_DELETED = FALSE
+                LEFT JOIN POST D
+                    ON B.POST_ID = D.ID AND D.IS_DELETED = FALSE
+        <where>
+            A.TENANT_ID = #{query.id}
+            <if test="query.username != null and query.username != ''">
+                AND B.USERNAME LIKE CONCAT('%', #{query.username}, '%')
+            </if>
+            <if test="query.nickname != null and query.nickname != ''">
+                AND B.NICKNAME LIKE CONCAT('%', #{query.nickname}, '%')
+            </if>
+            <if test="query.deptId != null">
+                AND C.ID = #{query.deptId}
+            </if>
+            <if test="query.postId != null">
+                AND D.ID = #{query.postId}
+            </if>
+            <if test="query.isAdmin != null">
+                AND A.IS_ADMIN = #{query.isAdmin}
+            </if>
+        </where>
+    </sql>
+
+    <select id="getUserTenants" resultType="com.yang.portal.user.service.impl.userService.UserTenantDto">
+        SELECT A.ID,A.`NAME`
+        FROM `TENANT` A INNER JOIN USER_TENANT B ON A.ID = B.TENANT_ID
+        WHERE B.USER_ID = #{userId}  AND A.IS_DELETED = FALSE ORDER BY A.ID
+    </select>
+
+
+    <select id="getTenantByTenantIdAndUserId" resultType="com.yang.portal.user.service.impl.userService.TenantInfoDto">
+        SELECT
+            B.`STATUS`,A.IS_ADMIN
+        FROM USER_TENANT A INNER JOIN TENANT B ON A.TENANT_ID = B.ID
+        WHERE A.TENANT_ID = #{tenantId} AND A.USER_ID = #{userId} AND B.IS_DELETED = FALSE
+    </select>
+</mapper>

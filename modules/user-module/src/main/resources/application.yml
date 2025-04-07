@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: user-module
+  profiles:
+    active: dev
+  config:
+    import: core.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.52.130:8848
+        namespace: 9ed4e7c9-3aca-4678-a7b6-5043b681a4ab
+        username: nacos
+        password: nacos
+server:
+  servlet:
+    context-path: /user
+  port: 8881
+user:
+  login:
+    loginExpireTime: 2
+    tenantLoginExpireTime: 8
+  jwt:
+    expireTime: 28800
+    secret: yang-secret
+---
+spring:
+  config:
+    activate.on-profile: dev
+  cloud:
+    nacos:
+      discovery:
+        group: dev
+
